@@ -1,5 +1,5 @@
 {
-  "enabled": true,
+  "enabled": false,
   "from": "فاتورتي <hello@getfatoorati.com>",
   "reply_to": "2-researbusiness@gmail.com",
   "daily_limit": 10,
