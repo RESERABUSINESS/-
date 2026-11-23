@@ -1,7 +1,7 @@
 {
   "enabled": true,
   "from": "فاتورتي <hello@getfatoorati.com>",
-  "reply_to": "2-reserbusiness@gmail.com",
+  "reply_to": "2-researbusiness@gmail.com",
   "daily_limit": 10,
   "min_fit_score": 6,
   "unsubscribe_line": "وصلتك هذي الرسالة لأن إيميلك منشور كوسيلة تواصل لنشاطك. إذا ما تبغى نتواصل معك، رد بكلمة «إلغاء» وما نرسل لك مرة ثانية."
