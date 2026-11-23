@@ -105,6 +105,32 @@ def send(cfg, item):
         return json.loads(resp.read().decode()).get("id", "")
 
 
+def api(method, path, body=None):
+    req = urllib.request.Request(
+        "https://api.resend.com" + path,
+        data=json.dumps(body).encode() if body is not None else None,
+        headers={"Content-Type": "application/json",
+                 "Authorization": "Bearer re_placeholder",
+                 "User-Agent": "fatoorati-lead-agent/1.0"},
+        method=method)
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        return json.loads(resp.read().decode() or "{}")
+
+
+def domain_ready(cfg):
+    """True once the sender domain is verified; otherwise asks Resend to re-check."""
+    domain = cfg["from"].split("@")[-1].strip(" >")
+    for d in api("GET", "/domains").get("data", []):
+        if d.get("name") == domain:
+            if d.get("status") == "verified":
+                return True
+            api("POST", f"/domains/{d['id']}/verify")
+            print(f"domain {domain} status={d.get('status')} — DNS not verified yet; re-check requested. Nothing sent.")
+            return False
+    print(f"domain {domain} not found in Resend. Nothing sent.")
+    return False
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     dry = "--dry-run" in sys.argv
@@ -116,6 +142,8 @@ def main():
         sys.exit("email_config.json: set 'from' first")
     if not cfg.get("enabled", False) and not dry:
         sys.exit("email_config.json: sending is disabled (enabled=false). Nothing sent.")
+    if not dry and not domain_ready(cfg):
+        sys.exit(0)
     with open(args[0], encoding="utf-8") as f:
         queue = json.load(f)
 
