@@ -10,3 +10,6 @@ date,time_utc,lead_id,type,to,subject,resend_id
 2026-11-24,04:56:38,L0022,outreach,info@lenzo.me,سؤال سريع لفريق لنزو عن فواتير الفعاليات,01a20be9-bfaa-7833-98ce-54d29c1c3194
 2026-11-24,04:56:38,L0023,outreach,info@ghaliah.com,فواتير المصورين والمودلز مع غالية,01a20be9-c02e-7101-8ccb-cedeb747ad42
 2026-11-24,04:56:38,L0024,outreach,projects@torjoman.com,فواتير المترجمين المتعاونين مع ترجمان,01a20be9-c0b8-7ded-b6ac-ba60bcb4e2b2
+2026-11-25,04:56:14,L0036,outreach,info@bytesfuture.com,فواتير المستقلين في مشاريع Bytes Future,01a2110f-bdb6-7471-9ac9-bbb6da8e221a
+2026-11-25,04:56:14,L0037,outreach,info@wd-adv.com,فواتير المستقلين اللي يشتغلون مع دبليو دي,01a2110f-be2c-79eb-bf40-67c161f502b6
+2026-11-25,04:56:14,L0038,outreach,inquiries@mile.org,أداة مجانية لمتدربي ريادة الأعمال في MILE,01a2110f-be9d-7527-b5ce-29bf2a7b4a82
