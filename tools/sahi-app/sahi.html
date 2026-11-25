@@ -1,0 +1,388 @@
+<title>صاحي</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Reem+Kufi:wght@500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<script type="application/json" id="claude-artifacts-manifest">{"permissions": ["full-access", "notifications", "menu-bar"]}</script>
+<style>
+/* Layout: one narrow control column — the cup (state) on top, mode buttons, timer chips, then the Fatoorati agent card. RTL. */
+:root{
+  --bg:#f3f5f8; --surface:#ffffff; --ink:#18202b; --muted:#5b6676; --line:#dde3ea;
+  --brew:#8a5a2b; --brew-soft:#f1e6da; --awake:#1f7a5a; --awake-soft:#e2f2ea; --warn:#a4561b;
+  --display:"Reem Kufi","IBM Plex Sans Arabic",system-ui,sans-serif;
+  --body:"IBM Plex Sans Arabic",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141b; --surface:#171e27; --ink:#e8edf3; --muted:#97a3b3; --line:#27313d;
+  --brew:#d29a5c; --brew-soft:#2a2118; --awake:#4cc495; --awake-soft:#132a22; --warn:#e39a5b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141b; --surface:#171e27; --ink:#e8edf3; --muted:#97a3b3; --line:#27313d;
+  --brew:#d29a5c; --brew-soft:#2a2118; --awake:#4cc495; --awake-soft:#132a22; --warn:#e39a5b; color-scheme:dark}
+html{direction:rtl}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 28px}
+.drag{position:fixed;inset:0 0 auto;height:36px;app-region:drag;-webkit-app-region:drag}
+main{max-width:440px;margin:0 auto;display:grid;gap:18px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-top:12px}
+h1{font-family:var(--display);font-weight:700;font-size:30px;margin:0;letter-spacing:0}
+.sub{color:var(--muted);font-size:13px}
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px 18px;display:grid;justify-items:center;gap:10px;text-align:center}
+#cup{width:150px;height:150px;max-width:100%}
+.state{font-family:var(--display);font-size:22px;font-weight:500;margin:0;text-wrap:balance}
+.state-note{color:var(--muted);font-size:13px;margin:0;max-width:34ch}
+.modes{display:grid;gap:10px}
+.mode{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center;text-align:right;
+  background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;color:var(--ink);
+  font:inherit;cursor:pointer}
+.mode:hover{border-color:var(--brew)}
+.mode:focus-visible,.chip:focus-visible,.btn:focus-visible{outline:2px solid var(--brew);outline-offset:2px}
+.mode .dot{grid-row:span 2;width:12px;height:12px;border-radius:50%;border:2px solid var(--line)}
+.mode b{font-weight:600}
+.mode span{color:var(--muted);font-size:13px}
+.mode[aria-pressed="true"]{border-color:var(--awake);background:var(--awake-soft)}
+.mode[aria-pressed="true"] .dot{background:var(--awake);border-color:var(--awake)}
+.mode:disabled{opacity:.5;cursor:not-allowed}
+.timers{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 14px;font:inherit;font-size:14px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--brew-soft);border-color:var(--brew);color:var(--brew)}
+.label{font-size:12px;color:var(--muted);letter-spacing:.02em;margin:0 0 6px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;gap:8px}
+.card h2{font-size:15px;margin:0;font-weight:600}
+.row{display:flex;justify-content:space-between;gap:12px;font-size:14px}
+.row span:first-child{color:var(--muted)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.ok{color:var(--awake)} .bad{color:var(--warn)}
+.btn{justify-self:start;border:1px solid var(--brew);background:var(--brew);color:#fff;border-radius:10px;padding:8px 16px;font:inherit;font-weight:600;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--brew)}
+.notice{background:var(--brew-soft);border-radius:12px;padding:12px 14px;font-size:14px}
+.foot{color:var(--muted);font-size:12px;text-align:center}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="drag" aria-hidden="true"></div>
+<main>
+  <header>
+    <h1>صاحي</h1>
+    <span class="sub" id="platformNote">يمنع جهازك من النوم</span>
+  </header>
+
+  <section class="stage" aria-live="polite">
+    <canvas id="cup" width="300" height="300" aria-hidden="true"></canvas>
+    <p class="state" id="stateText">الجهاز يقدر ينام</p>
+    <p class="state-note" id="stateNote">اختر وضع تحت عشان يبقى الجهاز صاحي.</p>
+  </section>
+
+  <div id="installBox" class="notice" hidden>
+    <p style="margin:0 0 8px">صاحي يشتغل كتطبيق على جهازك. ثبّته من تطبيق Claude على الكمبيوتر عشان يقدر يمنع الجهاز من النوم.</p>
+    <button class="btn" id="installBtn" hidden>تثبيت كتطبيق</button>
+  </div>
+
+  <div id="permBox" class="notice" hidden>
+    <p style="margin:0 0 8px" id="permText">صاحي يحتاج صلاحية «الوصول الكامل» عشان يشغّل أمر منع النوم في النظام.</p>
+    <button class="btn ghost" id="permBtn">فتح الصلاحيات</button>
+  </div>
+
+  <section>
+    <p class="label">الوضع</p>
+    <div class="modes">
+      <button class="mode" id="m-awake" data-mode="awake" aria-pressed="false">
+        <i class="dot"></i><b>صاحي</b><span>الجهاز والشاشة ما ينامون طول ما الغطاء مفتوح</span>
+      </button>
+      <button class="mode" id="m-lid" data-mode="lid" aria-pressed="false">
+        <i class="dot"></i><b>سهران</b><span id="lidDesc">يكمّل شغله حتى لو سكّرت الغطاء — الشاشة تنطفي</span>
+      </button>
+      <button class="mode" id="m-off" data-mode="off" aria-pressed="true">
+        <i class="dot"></i><b>خلّه ينام</b><span>يرجّع إعدادات النوم مثل ما كانت</span>
+      </button>
+    </div>
+  </section>
+
+  <section>
+    <p class="label">صاحي لمدة</p>
+    <div class="timers" id="timers">
+      <button class="chip" data-min="15" aria-pressed="false">ربع ساعة</button>
+      <button class="chip" data-min="30" aria-pressed="false">نص ساعة</button>
+      <button class="chip" data-min="60" aria-pressed="false">ساعة</button>
+      <button class="chip" data-min="180" aria-pressed="false">ثلاث ساعات</button>
+    </div>
+  </section>
+
+  <section class="card" id="agentCard">
+    <h2>مسؤول تسويق فاتورتي</h2>
+    <div class="row"><span>التشغيل الجاي</span><span class="mono" id="agNext">—</span></div>
+    <div class="row"><span>آخر تشغيل</span><span id="agLast">—</span></div>
+    <p class="sub" id="agNote" style="margin:0">يشتغل في السحابة، وجهازك مطفي عادي.</p>
+  </section>
+
+  <p class="foot">صاحي يوقف تلقائياً إذا سكّرت التطبيق، ويرجّع إعداد الغطاء الأصلي.</p>
+</main>
+
+<script>
+(function(){
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const cup = $("cup"), ctx = cup.getContext("2d");
+  const store = {
+    get(k){ try { return localStorage.getItem(k); } catch(_) { return null; } },
+    set(k,v){ try { localStorage.setItem(k,v); } catch(_) {} }
+  };
+  const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+  let desktop = null, platform = "", proc = null, mode = "off", endAt = 0, timerId = 0, tickId = 0;
+  let fill = 0, fillTarget = 0;
+
+  /* ---------- cup drawing ---------- */
+  function drawCup(c, size, level, opts){
+    const s = size / 100, g = c;
+    g.clearRect(0,0,size,size);
+    g.save(); g.scale(s,s);
+    g.lineWidth = opts.stroke; g.lineJoin = "round"; g.lineCap = "round";
+    // body
+    g.beginPath(); g.moveTo(22,34); g.lineTo(28,84); g.quadraticCurveTo(29,90,35,90); g.lineTo(59,90);
+    g.quadraticCurveTo(65,90,66,84); g.lineTo(72,34); g.closePath();
+    if (level > 0){
+      g.save(); g.clip();
+      const top = 88 - 52*level;
+      g.fillStyle = opts.coffee; g.fillRect(0, top, 100, 100);
+      g.restore();
+    }
+    g.strokeStyle = opts.line; g.stroke();
+    // handle
+    g.beginPath(); g.moveTo(71,44); g.bezierCurveTo(88,42,88,66,68,68); g.stroke();
+    // steam
+    if (level > 0.05 && opts.steam){
+      g.globalAlpha = Math.min(1, level*1.4);
+      [38,50].forEach((x,i)=>{ g.beginPath(); const o = opts.phase + i; g.moveTo(x,26);
+        g.bezierCurveTo(x-5,20+Math.sin(o)*1.5,x+5,14,x,8); g.stroke(); });
+      g.globalAlpha = 1;
+    }
+    g.restore();
+  }
+  let phase = 0;
+  function frame(){
+    fill += (fillTarget - fill) * 0.08; phase += 0.04;
+    drawCup(ctx, 300, fill, {stroke:4, line:css("--ink"), coffee:css(mode==="off"?"--brew":"--awake"), steam:true, phase});
+    if (Math.abs(fillTarget-fill) > 0.002 || fillTarget > 0) requestAnimationFrame(frame);
+  }
+  function iconPng(size, line, coffee, level){
+    const c = document.createElement("canvas"); c.width = c.height = size;
+    drawCup(c.getContext("2d"), size, level, {stroke:7, line, coffee, steam:level>0, phase:0});
+    return c.toDataURL("image/png");
+  }
+
+  /* ---------- UI ---------- */
+  const TEXT = {
+    off:   ["الجهاز يقدر ينام", "اختر وضع عشان يبقى الجهاز صاحي."],
+    awake: ["صاحي", "الجهاز والشاشة ما ينامون طول ما الغطاء مفتوح."],
+    lid:   ["سهران", "تقدر تسكّر الغطاء والجهاز يكمّل. خلّ الشاحن موصول."],
+    timer: ["صاحي لمدة", ""]
+  };
+  function render(){
+    const [t, n] = TEXT[mode];
+    $("stateText").textContent = t;
+    if (mode === "timer"){
+      const left = Math.max(0, Math.ceil((endAt - Date.now())/60000));
+      $("stateNote").textContent = "باقي " + left + " دقيقة، وبعدها يرجع الجهاز ينام عادي.";
+    } else $("stateNote").textContent = n;
+    document.querySelectorAll(".mode").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
+    document.querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", String(mode==="timer" && +b.dataset.min === +store.get("sahi.timerMin"))));
+    fillTarget = mode === "off" ? 0 : (mode === "timer" ? Math.max(0.15,(endAt-Date.now())/(+store.get("sahi.timerMin")*60000)) : 1);
+    requestAnimationFrame(frame);
+    updateTray();
+  }
+
+  /* ---------- system control ---------- */
+  const WIN_KEEP = "$s='using System;using System.Runtime.InteropServices;public static class P{[DllImport(\"kernel32.dll\")]public static extern uint SetThreadExecutionState(uint f);}';Add-Type $s;while($true){[P]::SetThreadExecutionState([uint32]2147483651)|Out-Null;Start-Sleep -Seconds 30}";
+  const LID_BACKUP = "~/.sahi/lid-backup.json";
+
+  function startKeepAwake(){
+    if (proc) return;
+    if (platform === "win32"){
+      proc = desktop.childProcess.spawn("powershell.exe", ["-NoProfile","-NonInteractive","-WindowStyle","Hidden","-Command", WIN_KEEP]);
+    } else if (platform === "darwin"){
+      proc = desktop.childProcess.spawn("/usr/bin/caffeinate", ["-dims"]);
+    } else {
+      proc = desktop.childProcess.spawn("systemd-inhibit", ["--what=sleep:idle","--why=Sahi","sleep","infinity"]);
+    }
+    const p = proc;
+    p.on("error", (e) => { if (proc === p){ proc = null; fail("ما قدرت أشغّل أمر منع النوم: " + e.message); } });
+    p.on("exit", () => { if (proc === p) proc = null; });
+  }
+  async function stopKeepAwake(){
+    const p = proc; proc = null;
+    if (p) { try { await p.kill(); } catch(_) {} }
+  }
+  async function lidSave(){
+    if (await desktop.fs.exists(LID_BACKUP)) return;
+    const r = await desktop.childProcess.exec("powercfg /query SCHEME_CURRENT SUB_BUTTONS LIDACTION");
+    const hex = (r.stdout.match(/0x[0-9a-fA-F]{8}/g) || []).map(h => parseInt(h,16));
+    if (hex.length < 2) throw new Error("ما قدرت أقرأ إعداد الغطاء الحالي");
+    await desktop.fs.mkdir("~/.sahi", {recursive:true});
+    await desktop.fs.writeFile(LID_BACKUP, JSON.stringify({ac:hex[hex.length-2], dc:hex[hex.length-1]}), "utf8");
+  }
+  async function lidSet(ac, dc){
+    const r = await desktop.childProcess.exec(
+      `powercfg /setacvalueindex SCHEME_CURRENT SUB_BUTTONS LIDACTION ${ac} && powercfg /setdcvalueindex SCHEME_CURRENT SUB_BUTTONS LIDACTION ${dc} && powercfg /setactive SCHEME_CURRENT`);
+    if (r.code !== 0) throw new Error((r.stderr || r.stdout || "powercfg").trim().slice(0,160));
+  }
+  async function lidRestore(){
+    if (!desktop?.fs || platform !== "win32") return;
+    try {
+      if (!(await desktop.fs.exists(LID_BACKUP))) return;
+      const b = JSON.parse(await desktop.fs.readFile(LID_BACKUP, "utf8"));
+      const ok = (v) => Number.isInteger(v) && v >= 0 && v <= 3;
+      if (ok(b.ac) && ok(b.dc)) await lidSet(b.ac, b.dc);
+      await desktop.fs.rm(LID_BACKUP, {force:true});
+    } catch(e){ fail("ما قدرت أرجّع إعداد الغطاء: " + e.message); }
+  }
+
+  async function ensurePerms(){
+    let st = await desktop.permissions.state();
+    const want = ["full-access","notifications","menu-bar"].filter(n => st[n] === "prompt");
+    if (want.length) st = await desktop.permissions.request(want);
+    if (st["full-access"] !== "granted"){
+      $("permText").textContent = st["full-access"] === "denied"
+        ? "رفضت صلاحية «الوصول الكامل»، وبدونها صاحي ما يقدر يمنع الجهاز من النوم. فعّلها من الصلاحيات."
+        : "صلاحية «الوصول الكامل» غير متاحة لهذا التطبيق الآن.";
+      $("permBox").hidden = false;
+      return false;
+    }
+    $("permBox").hidden = true;
+    return true;
+  }
+
+  async function setMode(next, minutes, fromUser){
+    if (!desktop?.childProcess){ $("installBox").hidden = false; return; }
+    if (fromUser && !(await ensurePerms())) return;
+    clearTimeout(timerId); clearInterval(tickId);
+    try {
+      if (next === "off"){
+        await stopKeepAwake(); await lidRestore();
+      } else if (next === "lid"){
+        if (platform !== "win32") return;
+        await lidSave(); await lidSet(0,0); startKeepAwake();
+      } else {
+        await lidRestore(); startKeepAwake();
+        if (next === "timer"){
+          endAt = Date.now() + minutes*60000; store.set("sahi.timerMin", String(minutes));
+          timerId = setTimeout(timerDone, minutes*60000);
+          tickId = setInterval(render, 30000);
+        }
+      }
+      mode = next;
+      store.set("sahi.mode", next === "timer" ? "off" : next);
+      if (next === "lid") notify("سهران شغّال: تقدر تسكّر الغطاء والجهاز يكمّل شغله.");
+    } catch(e){ fail(e.message); mode = proc ? "awake" : "off"; }
+    render();
+  }
+  async function timerDone(){
+    await setMode("off");
+    notify("خلص الوقت، والجهاز يقدر ينام الحين.");
+  }
+  function notify(body){
+    desktop?.notification?.show({body}).catch(()=>{});
+  }
+  function fail(msg){
+    $("stateNote").textContent = msg;
+  }
+
+  async function updateTray(){
+    if (!desktop?.tray) return;
+    try { if ((await desktop.permissions.state("menu-bar")) !== "granted") return; } catch(_) { return; }
+    const on = mode !== "off";
+    const win = platform === "win32";
+    const icon = win ? iconPng(64, "#2b2b2b", on ? "#1f7a5a" : "#8a5a2b", on ? 1 : 0)
+                     : iconPng(64, "#000000", "#000000", on ? 1 : 0);
+    const label = {off:"الجهاز يقدر ينام", awake:"صاحي", lid:"سهران", timer:"صاحي لمدة"}[mode];
+    desktop.tray.set({
+      icon, iconIsTemplate: !win, toolTip: label,
+      menu: [
+        {label: label, enabled:false},
+        {type:"separator"},
+        {label:"صاحي", type:"radio", checked: mode==="awake", click:()=>setMode("awake")},
+        ...(win ? [{label:"سهران (مع إغلاق الغطاء)", type:"radio", checked: mode==="lid", click:()=>setMode("lid")}] : []),
+        {label:"صاحي لمدة", submenu:[15,30,60,180].map(m=>({label:{15:"ربع ساعة",30:"نص ساعة",60:"ساعة",180:"ثلاث ساعات"}[m], click:()=>setMode("timer",m)}))},
+        {label:"خلّه ينام", type:"radio", checked: mode==="off", click:()=>setMode("off")},
+        {type:"separator"},
+        {label:"افتح صاحي", click:()=>desktop.window.show().catch(()=>{})}
+      ]
+    }).catch(()=>{});
+  }
+
+  /* ---------- wiring ---------- */
+  document.querySelectorAll(".mode").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode, 0, true)));
+  document.querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => setMode("timer", +b.dataset.min, true)));
+  $("permBtn").addEventListener("click", () => desktop?.permissions.manage().catch(()=>{}));
+  window.addEventListener("pagehide", () => { if (proc) proc.kill().catch(()=>{}); });
+
+  render();
+
+  /* ---------- boot: desktop ---------- */
+  claude.use("desktop").then(async (d) => {
+    desktop = d;
+    if (!d?.childProcess){
+      $("installBox").hidden = false;
+      document.querySelectorAll(".mode,.chip").forEach(b => b.disabled = true);
+      try {
+        if ((await d?.install.state()) === "available"){
+          const btn = $("installBtn"); btn.hidden = false;
+          btn.onclick = () => d.install.request().catch(()=>{});
+        }
+      } catch(_) {}
+      return;
+    }
+    d.app.dock.setIcon(iconPng(256, "#3a2a1c", "#c68a4c", 0.7)).catch(()=>{});
+    d.window.setOptions({width:460, height:760, minWidth:380, minHeight:560}).catch(()=>{});
+    platform = await d.os.platform().catch(() => "");
+    if (platform !== "win32"){
+      $("m-lid").disabled = true;
+      $("lidDesc").textContent = platform === "darwin"
+        ? "على الماك يحتاج صلاحيات مدير النظام، فمو متاح هنا"
+        : "متاح على ويندوز بس";
+    }
+    $("platformNote").textContent = platform === "win32" ? "ويندوز" : platform === "darwin" ? "ماك" : "يمنع جهازك من النوم";
+    let st = {};
+    try { st = await d.permissions.state(); } catch(_) {}
+    if (st["full-access"] === "granted"){
+      await lidRestore();                       // self-heal after a crash
+      const last = store.get("sahi.mode");
+      if (last === "awake" || (last === "lid" && platform === "win32")) await setMode(last);
+    }
+    updateTray();
+  });
+
+  /* ---------- boot: Fatoorati agent card ---------- */
+  const fmt = (iso) => {
+    try { return new Intl.DateTimeFormat("ar-SA-u-nu-latn",{timeZone:"Asia/Riyadh",weekday:"short",hour:"numeric",minute:"2-digit"}).format(new Date(iso)); }
+    catch(_) { return iso; }
+  };
+  claude.use("mcp").then((mcp) => {
+    if (!mcp){ $("agNote").textContent = "افتح صاحي داخل Claude عشان تشوف حالة الوكيل."; return; }
+    mcp.watchTool("Claude Code Remote", "list_triggers", {}, (ev) => {
+      if (ev.type === "error"){
+        const c = ev.error.code;
+        if (["needs_reauth","server_not_connected","not_in_manifest","blocked_by_policy","approval_required"].includes(c)){
+          $("agNext").textContent = "—"; $("agLast").textContent = "—";
+        }
+        $("agNote").textContent =
+          c === "needs_reauth" ? "أعد ربط Claude Code Remote من إعدادات claude.ai ← Connectors." :
+          c === "server_not_connected" ? "أضف Claude Code Remote من إعدادات claude.ai ← Connectors." :
+          c === "not_in_manifest" || c === "approval_required" ? "اسمح لصاحي يقرأ المهام المجدولة عشان تظهر حالة الوكيل." :
+          "ما قدرت أقرأ حالة الوكيل الحين، بحاول مرة ثانية بعد شوي.";
+        return;
+      }
+      const p = ev.result.payload, list = (p && Array.isArray(p.data)) ? p.data : [];
+      const t = list.find(x => typeof x?.name === "string" && x.name.includes("فاتورتي"));
+      if (!t){ $("agNote").textContent = "ما لقيت مهمة باسم «فاتورتي» في المهام المجدولة."; return; }
+      $("agNext").textContent = t.next_run_at ? fmt(t.next_run_at) : (t.enabled ? "—" : "موقوفة");
+      const lr = t.last_run;
+      const ok = lr && /SUCCEEDED/.test(String(lr.status));
+      const el = $("agLast");
+      el.textContent = lr ? (fmt(lr.finished_at || lr.fired_at) + (ok ? " · نجح" : " · فيه مشكلة")) : "لسا ما اشتغل";
+      el.className = lr ? (ok ? "ok" : "bad") : "";
+      const at = ev.result.cache?.storedAt;
+      $("agNote").textContent = "يشتغل في السحابة، وجهازك مطفي عادي." + (at ? " آخر تحديث " + fmt(new Date(at).toISOString()) : "");
+    }, {refetchInterval: 600000, cache:{staleTime:300000, gcTime:3600000}});
+  });
+})();
+</script>
